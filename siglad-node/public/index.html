@@ -1,8 +1,78 @@
 <!doctype html>
 <html lang="es">
+<head>
 <meta charset="utf-8">
-<meta http-equiv="refresh" content="0; url=login.html">
-<title>Redirigiendo…</title>
-<p>Redirigiendo a <a href="login.html">login.html</a>.</p>
-<script>location.replace('login.html');</script>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Login – SIGLAD</title>
+
+<!-- Estilos mínimos inline para que no dependa de styles.css -->
+<style>
+:root{--bg:#0b1324;--muted:#6b7280}
+body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,sans-serif;margin:0;background:#f6f8fb;color:#111827}
+header{background:var(--bg);color:#fff;padding:16px 20px}
+.container{max-width:720px;margin:24px auto;padding:0 16px}
+.card{background:#fff;border:1px solid #e5e7eb;border-radius:14px;box-shadow:0 1px 10px rgba(0,0,0,.04);padding:16px;margin-bottom:16px}
+h1{margin:0;font-size:20px}
+h2{margin:0 0 10px 0;font-size:18px}
+label{display:block;margin:6px 0 4px 0;color:#374151;font-size:12px}
+input,button{font-size:14px;padding:10px;border:1px solid #d1d5db;border-radius:10px}
+input{width:100%}
+button{cursor:pointer;background:#111827;color:#fff;border:none}
+.right{display:flex;gap:8px;align-items:center;margin-top:10px}
+.muted{color:var(--muted)}
+.alert{margin-top:10px;padding:10px;border-radius:10px;background:#fff7ed;border:1px solid #fde68a}
+</style>
+</head>
+<body>
+<header><h1>Login – SIGLAD</h1></header>
+
+<div class="container">
+  <div class="card">
+    <h2>Iniciar sesión</h2>
+    <label>Correo</label>
+    <input id="email" value="admin@siglad.test">
+    <label>Contraseña</label>
+    <input id="password" type="password" value="Admin#2025">
+
+    <div class="right">
+      <button id="btnLogin" type="button">Login</button>
+      <span class="muted">Admin seed: admin@siglad.test / Admin#2025</span>
+    </div>
+
+    <div id="msg" class="alert" style="display:none"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const btn = document.getElementById('btnLogin');
+  const email = document.getElementById('email');
+  const password = document.getElementById('password');
+  const msg = document.getElementById('msg');
+
+  btn.addEventListener('click', async function(){
+    try {
+      const r = await fetch('/api/auth/login', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ email: email.value.trim(), password: password.value })
+      });
+      const j = await r.json();
+      if (j.token) {
+        localStorage.setItem('token', j.token);
+        localStorage.setItem('role', j.role || '');
+        localStorage.setItem('name', j.name || '');
+        window.location.href = 'dashboard.html';
+      } else {
+        msg.textContent = j.error || 'Credenciales inválidas';
+        msg.style.display = 'block';
+      }
+    } catch (e) {
+      msg.textContent = 'No se pudo conectar con el backend.';
+      msg.style.display = 'block';
+    }
+  });
+})();
+</script>
+</body>
 </html>
