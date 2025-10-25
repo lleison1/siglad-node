@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SIGLAD – Demo</title>
+  <style>
+    body{font-family:system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, sans-serif; margin: 2rem; line-height:1.4;}
+    input,button,textarea,select{font-size:1rem; padding:.5rem; margin:.25rem 0;}
+    .card{border:1px solid #ddd; padding:1rem; border-radius:12px; margin-bottom:1rem; box-shadow:0 2px 8px rgba(0,0,0,.05)}
+    .row{display:grid; grid-template-columns:repeat(auto-fit, minmax(240px,1fr)); gap:1rem;}
+    code{background:#f6f8fa; padding:.2rem .4rem; border-radius:6px;}
+  </style>
+</head>
+<body>
+  <h1>SIGLAD – API Demo</h1>
+  <p>Usa estos formularios básicos para probar el login y las rutas sin Postman.</p>
+
+  <div class="card">
+    <h2>1) Login</h2>
+    <input id="email" placeholder="email" value="admin@siglad.test"/><br/>
+    <input id="password" placeholder="password" type="password" value="Admin#2025"/><br/>
+    <button onclick="login()">Login</button>
+    <p id="out-login"></p>
+  </div>
+
+  <div class="card">
+    <h2>2) Crear usuario (ADMIN)</h2>
+    <div class="row">
+      <div>
+        <input id="u_name" placeholder="Nombre" value="Agente Demo" />
+        <input id="u_email" placeholder="Correo" value="agente@siglad.test" />
+      </div>
+      <div>
+        <select id="u_role">
+          <option>ADMIN</option>
+          <option>AGENTE</option>
+          <option>TRANSPORTISTA</option>
+        </select>
+        <input id="u_pass" placeholder="Contraseña temporal" value="Agente#2025" />
+      </div>
+    </div>
+    <button onclick="crearUsuario()">Crear</button>
+    <pre id="out-user"></pre>
+  </div>
+
+  <div class="card">
+    <h2>3) Registrar DUCA (TRANSPORTISTA)</h2>
+    <textarea id="duca" rows="10">{
+  "duca": {
+    "numeroDocumento": "GT2025DUCA001234",
+    "valores": {"valorAduanaTotal": 34400.00, "moneda": "USD"}
+  }
+}</textarea><br/>
+    <button onclick="registrarDUCA()">Enviar</button>
+    <pre id="out-d"></pre>
+  </div>
+
+  <div class="card">
+    <h2>4) Consultar estado</h2>
+    <input id="num" placeholder="numeroDocumento" value="GT2025DUCA001234"/>
+    <button onclick="consultaEstado()">Consultar</button>
+    <pre id="out-s"></pre>
+  </div>
+
+  <script>
+    let token = null;
+    async function login(){
+      const r = await fetch('/api/auth/login', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({email: email.value, password: password.value})});
+      const j = await r.json();
+      token = j.token; out-login.textContent = JSON.stringify(j, null, 2);
+    }
+    async function crearUsuario(){
+      const r = await fetch('/api/users', {method:'POST', headers:{'Content-Type':'application/json','Authorization': 'Bearer ' + token},
+        body: JSON.stringify({ name: u_name.value, email: u_email.value, role: u_role.value, password: u_pass.value })});
+      out-user.textContent = JSON.stringify(await r.json(), null, 2);
+    }
+    async function registrarDUCA(){
+      const body = JSON.parse(duca.value);
+      const r = await fetch('/api/declarations', {method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+ token}, body: JSON.stringify(body)});
+      out-d.textContent = JSON.stringify(await r.json(), null, 2);
+    }
+    async function consultaEstado(){
+      const r = await fetch('/api/status?numeroDocumento='+encodeURIComponent(num.value), { headers: {'Authorization':'Bearer '+ token }});
+      out-s.textContent = JSON.stringify(await r.json(), null, 2);
+    }
+  </script>
+</body>
+</html>
