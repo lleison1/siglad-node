@@ -3,87 +3,158 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>SIGLAD – Demo</title>
+  <title>SIGLAD – Demo Completa</title>
   <style>
-    body{font-family:system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, sans-serif; margin: 2rem; line-height:1.4;}
-    input,button,textarea,select{font-size:1rem; padding:.5rem; margin:.25rem 0;}
-    .card{border:1px solid #ddd; padding:1rem; border-radius:12px; margin-bottom:1rem; box-shadow:0 2px 8px rgba(0,0,0,.05)}
-    .row{display:grid; grid-template-columns:repeat(auto-fit, minmax(240px,1fr)); gap:1rem;}
-    code{background:#f6f8fa; padding:.2rem .4rem; border-radius:6px;}
+    :root{--bg:#0b1324;--card:#ffffff;--muted:#6b7280;--ok:#16a34a;--warn:#f59e0b;--bad:#ef4444;}
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,sans-serif;margin:0;background:#f6f8fb;color:#111827}
+    header{background:var(--bg);color:#fff;padding:16px 20px}
+    header h1{margin:0;font-size:20px}
+    .wrap{max-width:1100px;margin:24px auto;padding:0 16px}
+    .grid{display:grid;gap:16px}
+    @media(min-width:900px){.grid{grid-template-columns:2fr 1fr}}
+    .card{background:var(--card);border:1px solid #e5e7eb;border-radius:14px;box-shadow:0 1px 10px rgba(0,0,0,.04)}
+    .card h2{margin:0 0 10px 0;font-size:18px}
+    .card .hd{padding:14px 16px;border-bottom:1px solid #eef1f5;display:flex;justify-content:space-between;align-items:center}
+    .card .bd{padding:16px}
+    input,select,button,textarea{font-size:14px;padding:10px;border:1px solid #d1d5db;border-radius:10px}
+    input,select,textarea{width:100%}
+    textarea{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace}
+    button{cursor:pointer;background:#111827;color:#fff;border:none}
+    button.secondary{background:#374151}
+    button.success{background:var(--ok)}
+    button.warn{background:var(--warn)}
+    button.danger{background:var(--bad)}
+    .row{display:grid;gap:10px}
+    @media(min-width:700px){.row{grid-template-columns:repeat(2,1fr)}}
+    .muted{color:var(--muted)}
+    .pill{display:inline-block;padding:2px 8px;border-radius:999px;font-size:12px;border:1px solid #e5e7eb}
+    .pill.PENDIENTE{background:#fff7ed;border-color:#fed7aa}
+    .pill.VALIDADA{background:#ecfdf5;border-color:#86efac}
+    .pill.RECHAZADA{background:#fef2f2;border-color:#fecaca}
+    .flex{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+    table{width:100%;border-collapse:collapse;font-size:14px}
+    th,td{padding:8px;border-bottom:1px solid #eef1f5;text-align:left}
+    .right{display:flex; gap:8px; align-items:center}
+    .mono{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace}
+    .hint{font-size:12px;color:#6b7280}
+    .foot{margin-top:6px}
   </style>
 </head>
 <body>
-  <h1>SIGLAD – API Demo</h1>
-  <p>Usa estos formularios básicos para probar el login y las rutas sin Postman.</p>
+  <header>
+    <h1>SIGLAD – Demo Completa</h1>
+  </header>
 
-  <div class="card">
-    <h2>1) Login</h2>
-    <input id="email" placeholder="email" value="admin@siglad.test"/><br/>
-    <input id="password" placeholder="password" type="password" value="Admin#2025"/><br/>
-    <button onclick="login()">Login</button>
-    <p id="out-login"></p>
-  </div>
-
-  <div class="card">
-    <h2>2) Crear usuario (ADMIN)</h2>
-    <div class="row">
-      <div>
-        <input id="u_name" placeholder="Nombre" value="Agente Demo" />
-        <input id="u_email" placeholder="Correo" value="agente@siglad.test" />
+  <div class="wrap grid">
+    <!-- Columna grande -->
+    <div class="grid">
+      <!-- Login & sesión -->
+      <div class="card">
+        <div class="hd">
+          <h2>1) Sesión</h2>
+          <div class="right"><span class="muted">Rol actual:</span><strong id="roleLbl">—</strong></div>
+        </div>
+        <div class="bd">
+          <div class="row">
+            <div>
+              <label class="muted">Correo</label>
+              <input id="email" value="admin@siglad.test" />
+            </div>
+            <div>
+              <label class="muted">Contraseña</label>
+              <input id="password" type="password" value="Admin#2025" />
+            </div>
+          </div>
+          <div class="flex" style="margin-top:10px">
+            <button onclick="login()">Login</button>
+            <button class="secondary" onclick="limpiarSesion()">Logout</button>
+            <span class="hint">El token se guarda en memoria mientras tengas la pestaña abierta.</span>
+          </div>
+          <div class="foot">
+            <div class="muted">Token (parcial): <span class="mono" id="tokenshort">—</span></div>
+            <div class="muted">Usuario: <span id="nameLbl">—</span></div>
+          </div>
+          <pre id="out-login" class="mono"></pre>
+        </div>
       </div>
-      <div>
-        <select id="u_role">
-          <option>ADMIN</option>
-          <option>AGENTE</option>
-          <option>TRANSPORTISTA</option>
-        </select>
-        <input id="u_pass" placeholder="Contraseña temporal" value="Agente#2025" />
-      </div>
-    </div>
-    <button onclick="crearUsuario()">Crear</button>
-    <pre id="out-user"></pre>
-  </div>
 
-  <div class="card">
-    <h2>3) Registrar DUCA (TRANSPORTISTA)</h2>
-    <textarea id="duca" rows="10">{
+      <!-- Crear usuario -->
+      <div class="card">
+        <div class="hd"><h2>2) Crear usuario (ADMIN)</h2></div>
+        <div class="bd">
+          <div class="row">
+            <div>
+              <label class="muted">Nombre</label>
+              <input id="u_name" value="Agente Demo" />
+            </div>
+            <div>
+              <label class="muted">Correo</label>
+              <input id="u_email" value="agente@siglad.test" />
+            </div>
+          </div>
+          <div class="row" style="margin-top:10px">
+            <div>
+              <label class="muted">Rol</label>
+              <select id="u_role">
+                <option>ADMIN</option>
+                <option>AGENTE</option>
+                <option>TRANSPORTISTA</option>
+              </select>
+            </div>
+            <div>
+              <label class="muted">Contraseña temporal</label>
+              <input id="u_pass" value="Agente#2025" />
+            </div>
+          </div>
+          <div class="flex" style="margin-top:10px">
+            <button onclick="crearUsuario()">Crear</button>
+            <button class="secondary" onclick="listarUsuarios()">Listar usuarios</button>
+          </div>
+          <pre id="out-user" class="mono"></pre>
+        </div>
+      </div>
+
+      <!-- Registrar DUCA -->
+      <div class="card">
+        <div class="hd"><h2>3) Registrar DUCA (TRANSPORTISTA)</h2></div>
+        <div class="bd">
+          <textarea id="duca" rows="10">{
   "duca": {
     "numeroDocumento": "GT2025DUCA001234",
     "valores": {"valorAduanaTotal": 34400.00, "moneda": "USD"}
   }
-}</textarea><br/>
-    <button onclick="registrarDUCA()">Enviar</button>
-    <pre id="out-d"></pre>
-  </div>
+}</textarea>
+          <div class="flex" style="margin-top:10px">
+            <button class="success" onclick="registrarDUCA()">Registrar</button>
+            <button class="secondary" onclick="listarDeclaraciones()">Listar mis declaraciones</button>
+          </div>
+          <pre id="out-d" class="mono"></pre>
+        </div>
+      </div>
 
-  <div class="card">
-    <h2>4) Consultar estado</h2>
-    <input id="num" placeholder="numeroDocumento" value="GT2025DUCA001234"/>
-    <button onclick="consultaEstado()">Consultar</button>
-    <pre id="out-s"></pre>
-  </div>
+      <!-- Declaraciones: listar + validar/rechazar -->
+      <div class="card">
+        <div class="hd"><h2>4) Declaraciones</h2></div>
+        <div class="bd">
+          <div class="flex" style="margin-bottom:10px">
+            <button class="secondary" onclick="listarDeclaraciones()">Refrescar lista</button>
+            <span class="hint">Si eres TRANSPORTISTA verás solo las tuyas; AGENTE/ADMIN ven todas.</span>
+          </div>
+          <div id="dec-wrap"></div>
+        </div>
+      </div>
 
-  <script>
-    let token = null;
-    async function login(){
-      const r = await fetch('/api/auth/login', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({email: email.value, password: password.value})});
-      const j = await r.json();
-      token = j.token; out-login.textContent = JSON.stringify(j, null, 2);
-    }
-    async function crearUsuario(){
-      const r = await fetch('/api/users', {method:'POST', headers:{'Content-Type':'application/json','Authorization': 'Bearer ' + token},
-        body: JSON.stringify({ name: u_name.value, email: u_email.value, role: u_role.value, password: u_pass.value })});
-      out-user.textContent = JSON.stringify(await r.json(), null, 2);
-    }
-    async function registrarDUCA(){
-      const body = JSON.parse(duca.value);
-      const r = await fetch('/api/declarations', {method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+ token}, body: JSON.stringify(body)});
-      out-d.textContent = JSON.stringify(await r.json(), null, 2);
-    }
-    async function consultaEstado(){
-      const r = await fetch('/api/status?numeroDocumento='+encodeURIComponent(num.value), { headers: {'Authorization':'Bearer '+ token }});
-      out-s.textContent = JSON.stringify(await r.json(), null, 2);
-    }
-  </script>
-</body>
-</html>
+      <!-- Consultar estado -->
+      <div class="card">
+        <div class="hd"><h2>5) Consultar estado por número</h2></div>
+        <div class="bd">
+          <div class="row">
+            <div>
+              <label class="muted">numeroDocumento</label>
+              <input id="num" value="GT2025DUCA001234" />
+            </div>
+          </div>
+          <div class="flex" style="margin-top:10px">
+            <button onclick="consultaEstado()">Consultar</button>
+          </div>
+          <pre id="out-s" class=
