@@ -42,4 +42,29 @@ document.getElementById('btnLogin').onclick = async ()=>{
 };
 </script>
 </body>
+  <script>
+(function(){
+  const btn = document.getElementById('btnLogin');
+  if(!btn) return;
+  btn.addEventListener('click', async function(){
+    const r = await fetch('/api/auth/login', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ email: document.getElementById('email').value.trim(), password: document.getElementById('password').value })
+    });
+    const j = await r.json();
+    if(j.token){
+      localStorage.setItem('token', j.token);
+      localStorage.setItem('role', j.role || '');
+      localStorage.setItem('name', j.name || '');
+      window.location.href = 'dashboard.html';
+    }else{
+      const msg = document.getElementById('msg');
+      msg.textContent = j.error || 'Credenciales inválidas';
+      msg.classList.remove('hidden');
+    }
+  });
+})();
+</script>
+
 </html>
