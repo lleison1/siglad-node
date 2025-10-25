@@ -1,4 +1,3 @@
-
 const API_BASE = '';
 const storage = {
   get token(){ return localStorage.getItem('token') },
