@@ -1,0 +1,95 @@
+
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Usuarios – SIGLAD</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body onload="guardLogged()">
+<header><h1>Usuarios</h1><div class="right"><span class="muted">Rol:</span><strong id="role">—</strong> · <span id="who">—</span></div></header>
+<div class="container">
+  <nav id="main-nav"></nav>
+
+  <div class="alert">Requiere rol <b>ADMIN</b>. Si no tienes permisos, verás error 403 al intentar crear/modificar.</div>
+
+  <div class="card">
+    <h2>Crear usuario</h2>
+    <div class="row row-2">
+      <div><label>Nombre</label><input id="u_name" value="Agente Demo"></div>
+      <div><label>Correo</label><input id="u_email" value="agente@siglad.test"></div>
+    </div>
+    <div class="row row-2" style="margin-top:8px">
+      <div><label>Rol</label><select id="u_role"><option>ADMIN</option><option>AGENTE</option><option>TRANSPORTISTA</option></select></div>
+      <div><label>Contraseña temporal</label><input id="u_pass" value="Agente#2025"></div>
+    </div>
+    <div class="right" style="margin-top:10px"><button id="btnCreate">Crear</button></div>
+    <div id="u_msg" class="muted" style="margin-top:8px"></div>
+  </div>
+
+  <div class="card">
+    <h2>Listado</h2>
+    <div class="right" style="margin-bottom:8px">
+      <button class="secondary" id="btnReload">Recargar</button>
+    </div>
+    <table class="table" id="tbl">
+      <thead><tr><th>ID</th><th>Nombre</th><th>Correo</th><th>Rol</th><th>Activo</th><th>Creado</th><th>Acciones</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>
+<footer>© SIGLAD Demo</footer>
+<script src="app.js"></script>
+<script>
+async function createUser(){
+  const body = { name: u_name.value.trim(), email: u_email.value.trim(), role: u_role.value, password: u_pass.value };
+  const r = await api('/api/users', { method:'POST', headers: authHeaders(true), body: JSON.stringify(body) });
+  const j = await r.json();
+  u_msg.textContent = j.id? 'Creado ID '+j.id : (j.error||'Error al crear');
+  await loadUsers();
+}
+
+async function loadUsers(){
+  const r = await api('/api/users', { headers: authHeaders(false) });
+  const arr = await r.json();
+  const tb = document.querySelector('#tbl tbody'); tb.innerHTML='';
+  for(const u of arr){
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${u.id}</td>
+      <td>${u.name}</td>
+      <td>${u.email}</td>
+      <td>${u.role}</td>
+      <td>${u.active? 'Sí':'No'}</td>
+      <td>${u.created_at? new Date(u.created_at).toLocaleString(): '-'}</td>
+      <td class="right">
+        <button class="secondary" data-act="reset" data-id="${u.id}">Reset pass</button>
+        <button class="${u.active?'warn':'success'}" data-act="toggle" data-id="${u.id}" data-active="${u.active?'1':'0'}">${u.active?'Desactivar':'Activar'}</button>
+      </td>`;
+    tb.appendChild(tr);
+  }
+}
+
+document.addEventListener('click', async (e)=>{
+  const btn = e.target.closest('button'); if(!btn) return;
+  const act = btn.dataset.act; if(!act) return;
+  const id = btn.dataset.id;
+  if(act==='reset'){
+    const newPass = prompt('Nueva contraseña (deja vacío para Temporal#2025):','');
+    const body = { newPassword: newPass||'Temporal#2025' };
+    await api(`/api/users/${id}/reset-password`, { method:'POST', headers: authHeaders(true), body: JSON.stringify(body) });
+    alert('Contraseña reiniciada');
+  } else if(act==='toggle'){
+    const active = btn.dataset.active==='1';
+    await api(`/api/users/${id}`, { method:'PUT', headers: authHeaders(true), body: JSON.stringify({ active: !active }) });
+    await loadUsers();
+  }
+});
+
+document.getElementById('btnCreate').onclick = createUser;
+document.getElementById('btnReload').onclick = loadUsers;
+
+guardLogged(); setHeader(); renderNav(); loadUsers();
+</script>
+</body>
+</html>

@@ -1,0 +1,88 @@
+
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Declaraciones – SIGLAD</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body onload="guardLogged()">
+<header><h1>Declaraciones</h1><div class="right"><span class="muted">Rol:</span><strong id="role">—</strong> · <span id="who">—</span></div></header>
+<div class="container">
+  <nav id="main-nav"></nav>
+
+  <div id="boxTrans" class="card hidden">
+    <h2>Registrar DUCA (solo TRANSPORTISTA)</h2>
+    <textarea id="duca" rows="10">{ "duca": { "numeroDocumento": "GT2025DUCA001234", "valores": {"valorAduanaTotal": 34400.00, "moneda": "USD"} } }</textarea>
+    <div class="right" style="margin-top:8px"><button class="success" id="btnReg">Registrar</button></div>
+    <div class="muted" id="msgReg"></div>
+  </div>
+
+  <div class="card">
+    <div class="right" style="justify-content:space-between">
+      <h2>Listado</h2>
+      <button class="secondary" id="btnReload">Refrescar</button>
+    </div>
+    <table class="table" id="tbl">
+      <thead><tr><th>ID</th><th>Número</th><th>Estado</th><th>Creada</th><th>Validada</th><th>Acciones</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>
+<footer>© SIGLAD Demo</footer>
+<script src="app.js"></script>
+<script>
+async function loadDecls(){
+  const r = await api('/api/declarations', { headers: authHeaders(false) });
+  const arr = await r.json();
+  const tb = document.querySelector('#tbl tbody'); tb.innerHTML='';
+  for(const d of arr){
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${d.id}</td>
+      <td class="mono">${d.numero_documento}</td>
+      <td><span class="pill ${d.estado}">${d.estado}</span></td>
+      <td>${d.created_at ? new Date(d.created_at).toLocaleString() : '-'}</td>
+      <td>${d.validated_at ? new Date(d.validated_at).toLocaleString() : '-'}</td>
+      <td class="right">
+        <button class="success" data-act="ap" data-id="${d.id}">Aprobar</button>
+        <button class="danger" data-act="re" data-id="${d.id}">Rechazar</button>
+      </td>`;
+    tb.appendChild(tr);
+  }
+  if(storage.role!=='AGENTE'){
+    document.querySelectorAll('[data-act]').forEach(b=> b.style.display='none');
+  }
+}
+
+document.addEventListener('click', async (e)=>{
+  const btn = e.target.closest('button'); if(!btn) return;
+  const id = btn.dataset.id;
+  if(btn.dataset.act==='ap' || btn.dataset.act==='re'){
+    if(storage.role!=='AGENTE'){ return alert('Solo AGENTE'); }
+    const accion = btn.dataset.act==='ap' ? 'APROBAR' : 'RECHAZAR';
+    await api('/api/declarations/'+id+'/validate', { method:'PATCH', headers: authHeaders(true), body: JSON.stringify({ accion }) });
+    await loadDecls();
+  }
+});
+
+document.getElementById('btnReload').onclick = loadDecls;
+
+document.getElementById('btnReg').onclick = async ()=>{
+  try{
+    const body = JSON.parse(document.getElementById('duca').value);
+    const r = await api('/api/declarations', { method:'POST', headers: authHeaders(true), body: JSON.stringify(body) });
+    const j = await r.json();
+    msgReg.textContent = j.message || j.error || 'Hecho';
+    await loadDecls();
+  }catch(e){ alert('JSON inválido'); }
+};
+
+if(localStorage.getItem('role')==='TRANSPORTISTA'){
+  document.getElementById('boxTrans').classList.remove('hidden');
+}
+
+guardLogged(); setHeader(); renderNav(); loadDecls();
+</script>
+</body>
+</html>

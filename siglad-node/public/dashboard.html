@@ -1,0 +1,25 @@
+
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Dashboard – SIGLAD</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body onload="guardLogged()">
+<header><h1>Dashboard – SIGLAD</h1><div class="right"><span class="muted">Rol:</span><strong id="role">—</strong> · <span id="who">—</span></div></header>
+<div class="container">
+  <nav id="main-nav"></nav>
+  <div class="card">
+    <h2>Accesos rápidos</h2>
+    <div class="grid grid-3" style="margin-top:10px">
+      <a class="card" href="users.html"><h3>Usuarios</h3><p class="muted">Alta, listado y reset (ADMIN).</p></a>
+      <a class="card" href="declarations.html"><h3>Declaraciones</h3><p class="muted">Registro (TRANSPORTISTA) y validación (AGENTE).</p></a>
+      <a class="card" href="status.html"><h3>Estados</h3><p class="muted">Consulta por número de documento.</p></a>
+    </div>
+  </div>
+</div>
+<footer>© SIGLAD Demo</footer>
+<script src="app.js"></script>
+</body>
+</html>

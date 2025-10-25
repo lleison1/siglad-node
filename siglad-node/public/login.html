@@ -1,0 +1,45 @@
+
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Login – SIGLAD</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header><h1>Login – SIGLAD</h1><div class="right"><span class="muted">Versión multipágina</span></div></header>
+<div class="container">
+  <div class="card">
+    <h2>Iniciar sesión</h2>
+    <div class="row row-2" style="margin-top:8px">
+      <div><label>Correo</label><input id="email" value="admin@siglad.test"></div>
+      <div><label>Contraseña</label><input id="password" type="password" value="Admin#2025"></div>
+    </div>
+    <div style="margin-top:10px" class="right">
+      <button id="btnLogin">Login</button>
+      <span class="muted">Admin seed: admin@siglad.test / Admin#2025</span>
+    </div>
+    <div id="msg" class="alert hidden"></div>
+  </div>
+</div>
+<footer>© SIGLAD Demo</footer>
+<script src="app.js"></script>
+<script>
+document.getElementById('btnLogin').onclick = async ()=>{
+  const r = await fetch('/api/auth/login', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ email: email.value.trim(), password: password.value })
+  });
+  const j = await r.json();
+  if(j.token){
+    storage.token = j.token; storage.role = j.role; storage.name = j.name;
+    window.location.href='dashboard.html';
+  }else{
+    const msg = document.getElementById('msg');
+    msg.textContent = j.error || 'Credenciales inválidas';
+    msg.classList.remove('hidden');
+  }
+};
+</script>
+</body>
+</html>
