@@ -1,70 +1,99 @@
-
 <!doctype html>
 <html lang="es">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Login – SIGLAD</title>
-<link rel="stylesheet" href="styles.css">
+<style>
+:root{--bg:#0b1324;--muted:#6b7280}
+body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,sans-serif;margin:0;background:#f6f8fb;color:#111827}
+header{background:var(--bg);color:#fff;padding:16px 20px}
+.container{max-width:720px;margin:24px auto;padding:0 16px}
+.card{background:#fff;border:1px solid #e5e7eb;border-radius:14px;box-shadow:0 1px 10px rgba(0,0,0,.04);padding:16px}
+h1{margin:0;font-size:20px}
+h2{margin:0 0 10px 0;font-size:18px}
+label{display:block;margin:6px 0 4px 0;color:#374151;font-size:12px}
+input,button{font-size:14px;padding:10px;border:1px solid #d1d5db;border-radius:10px}
+input{width:100%}
+button{cursor:pointer;background:#111827;color:#fff;border:none}
+.row{display:grid;gap:10px}
+.right{display:flex;gap:8px;align-items:center;margin-top:10px}
+.muted{color:var(--muted)}
+.alert{margin-top:10px;padding:10px;border-radius:10px;background:#fff7ed;border:1px solid #fde68a;display:none;white-space:pre-wrap}
+</style>
 </head>
 <body>
-<header><h1>Login – SIGLAD</h1><div class="right"><span class="muted">Versión multipágina</span></div></header>
+<header><h1>Login – SIGLAD</h1></header>
+
 <div class="container">
   <div class="card">
     <h2>Iniciar sesión</h2>
-    <div class="row row-2" style="margin-top:8px">
-      <div><label>Correo</label><input id="email" value="admin@siglad.test"></div>
-      <div><label>Contraseña</label><input id="password" type="password" value="Admin#2025"></div>
+    <div class="row">
+      <div>
+        <label>Correo</label>
+        <input id="email" value="admin@siglad.test" autocomplete="username">
+      </div>
+      <div>
+        <label>Contraseña</label>
+        <input id="password" type="password" value="Admin#2025" autocomplete="current-password">
+      </div>
     </div>
-    <div style="margin-top:10px" class="right">
-      <button id="btnLogin">Login</button>
+
+    <div class="right">
+      <!-- type="button" para impedir submit/recarga -->
+      <button id="btnLogin" type="button">Login</button>
       <span class="muted">Admin seed: admin@siglad.test / Admin#2025</span>
     </div>
-    <div id="msg" class="alert hidden"></div>
+
+    <div id="msg" class="alert"></div>
   </div>
 </div>
-<footer>© SIGLAD Demo</footer>
-<script src="app.js"></script>
+
 <script>
-document.getElementById('btnLogin').onclick = async ()=>{
-  const r = await fetch('/api/auth/login', {
-    method:'POST', headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({ email: email.value.trim(), password: password.value })
-  });
-  const j = await r.json();
-  if(j.token){
-    storage.token = j.token; storage.role = j.role; storage.name = j.name;
-    window.location.href='dashboard.html';
-  }else{
-    const msg = document.getElementById('msg');
-    msg.textContent = j.error || 'Credenciales inválidas';
-    msg.classList.remove('hidden');
-  }
-};
-</script>
-</body>
-  <script>
 (function(){
   const btn = document.getElementById('btnLogin');
-  if(!btn) return;
+  const email = document.getElementById('email');
+  const password = document.getElementById('password');
+  const msg = document.getElementById('msg');
+
+  function show(text){ msg.textContent = text; msg.style.display = 'block'; }
+  function ok(text){ show('✅ ' + text); }
+  function err(text){ show('❌ ' + text); }
+
+  // DIAGNÓSTICO INICIAL: prueba /health para saber si el backend responde
+  fetch('/health').then(r=>r.text()).then(t=>ok('Health: '+t)).catch(()=>{ /* no es fatal */ });
+
   btn.addEventListener('click', async function(){
-    const r = await fetch('/api/auth/login', {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ email: document.getElementById('email').value.trim(), password: document.getElementById('password').value })
-    });
-    const j = await r.json();
-    if(j.token){
-      localStorage.setItem('token', j.token);
-      localStorage.setItem('role', j.role || '');
-      localStorage.setItem('name', j.name || '');
-      window.location.href = 'dashboard.html';
-    }else{
-      const msg = document.getElementById('msg');
-      msg.textContent = j.error || 'Credenciales inválidas';
-      msg.classList.remove('hidden');
+    try {
+      // Traza visible para confirmar que el click está enganchado
+      ok('Enviando login…');
+
+      const r = await fetch('/api/auth/login', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ email: email.value.trim(), password: password.value })
+      });
+
+      // Traza de estado HTTP
+      ok('HTTP '+r.status+' recibido…');
+
+      const j = await r.json().catch(()=>({ error:'Respuesta no-JSON' }));
+
+      if (r.ok && j.token) {
+        localStorage.setItem('token', j.token);
+        localStorage.setItem('role', j.role || '');
+        localStorage.setItem('name', j.name || '');
+        ok('Login OK. Redirigiendo al dashboard…');
+        location.href = 'dashboard.html';
+      } else {
+        err((j && (j.error || j.message)) || ('Login falló. HTTP '+r.status));
+      }
+    } catch (e) {
+      err('No se pudo conectar con el backend.\n' + (e && e.message ? e.message : e));
     }
   });
 })();
 </script>
-
+</body>
 </html>
+
